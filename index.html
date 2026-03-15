@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiteLLM IA por Areas</title>
+  <style>
+    :root {
+      --bg: #f4efe8;
+      --panel: #fffdf9;
+      --line: #eadbca;
+      --ink: #1e2732;
+      --muted: #64707d;
+      --accent: #eb6a00;
+      --accent-2: #ffb36b;
+      --teal: #167c80;
+      --olive: #5b6f49;
+      --shadow: 0 18px 42px rgba(80, 58, 30, 0.12);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(235, 106, 0, 0.14), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(22, 124, 128, 0.12), transparent 26%),
+        var(--bg);
+    }
+
+    .shell {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero,
+    .panel,
+    .stat-card {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(100, 112, 125, 0.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 22px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      bottom: -90px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(235, 106, 0, 0.18), transparent 72%);
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.1rem, 4vw, 3.4rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 12px 0 0;
+      max-width: 780px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 1rem;
+    }
+
+    .meta-grid {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .meta-card {
+      padding: 16px 18px;
+      border: 1px solid rgba(100, 112, 125, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .meta-card .label,
+    .section-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .meta-card .value {
+      margin-top: 6px;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .stats {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 22px;
+    }
+
+    .stat-card {
+      padding: 18px 20px;
+    }
+
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-card .value {
+      margin-top: 10px;
+      font-weight: 800;
+      font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .panel-title {
+      margin: 0 0 14px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .search,
+    .select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+    }
+
+    .search:focus,
+    .select:focus {
+      outline: 2px solid rgba(235, 106, 0, 0.18);
+      border-color: var(--accent);
+    }
+
+    .button-row,
+    .chip-row,
+    .breadcrumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      transition: 150ms ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 10px 18px rgba(235, 106, 0, 0.22);
+    }
+
+    .legend {
+      margin-top: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .main-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+    }
+
+    .section-head .hint {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .crumb {
+      border: 0;
+      background: rgba(235, 106, 0, 0.1);
+      color: #a14800;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .item {
+      border: 1px solid rgba(100, 112, 125, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 15px;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(80, 58, 30, 0.08);
+      border-color: rgba(235, 106, 0, 0.26);
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .item-title {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .item-main {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .item-main .value {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .item-main .caption {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .track {
+      height: 12px;
+      background: linear-gradient(90deg, rgba(235, 106, 0, 0.08), rgba(22, 124, 128, 0.08));
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric-chip {
+      background: #fff8f1;
+      border: 1px solid rgba(235, 106, 0, 0.12);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .metric-chip .k {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .metric-chip .v {
+      display: block;
+      margin-top: 4px;
+      font-weight: 800;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(100, 112, 125, 0.12);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(100, 112, 125, 0.08);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #fff7ef;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.8rem;
+    }
+
+    td.num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr[data-path] {
+      cursor: pointer;
+    }
+
+    tr[data-path]:hover {
+      background: #fffaf4;
+    }
+
+    .empty {
+      padding: 26px;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .footnote {
+      margin-top: 16px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1120px) {
+      .hero,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .shell {
+        padding: 16px;
+      }
+
+      .hero,
+      .panel,
+      .stat-card {
+        padding: 18px;
+      }
+
+      .stats,
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .item-head,
+      .section-head {
+        flex-direction: column;
+        align-items: start;
+      }
+
+      .item-main {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <h1>Implantación y gasto de IA por áreas</h1>
+        <p>
+          Navegación interactiva por <strong>área</strong>, <strong>subárea 1</strong>, <strong>subárea 2</strong> y
+          <strong>subárea 3</strong> combinando gasto de LiteLLM con tamaño de plantilla HR. La implantación usa
+          empleados activos de LiteLLM sobre plantilla total; los dominios externos no entran en el denominador.
+        </p>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="label">Periodo analizado</div>
+          <div class="value">2026-02-15 a 2026-03-15</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Cobertura temporal</div>
+          <div class="value">29 días</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Regla de mapeo</div>
+          <div class="value">local-part del email</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="workspace">
+      <aside class="panel">
+        <h2 class="panel-title">Controles</h2>
+
+        <label class="panel-title" for="search">Buscar</label>
+        <input id="search" class="search" type="search" placeholder="Area, subárea o texto">
+
+        <div style="height: 18px"></div>
+
+        <div class="panel-title">Métrica visual principal</div>
+        <select id="metric-select" class="select">
+          <option value="gasto_usd">Gasto total</option>
+          <option value="pct_implantacion_ia">Implantación IA</option>
+          <option value="usd_por_empleado">USD por empleado</option>
+          <option value="indice_intensidad_ia">Índice de intensidad IA</option>
+        </select>
+
+        <div style="height: 18px"></div>
+
+        <div class="panel-title">Navegación</div>
+        <div class="button-row">
+          <button id="back-btn">Subir un nivel</button>
+          <button id="reset-btn">Volver al inicio</button>
+        </div>
+
+        <div style="height: 18px"></div>
+
+        <div class="panel-title">Áreas raíz</div>
+        <div class="chip-row" id="root-chips"></div>
+
+        <div class="legend">
+          Cada tarjeta muestra simultáneamente gasto, implantación, activos y ratio de intensidad. El selector
+          superior solo cambia qué métrica manda el tamaño de la barra.
+        </div>
+      </aside>
+
+      <main class="main-grid">
+        <section class="panel">
+          <div class="breadcrumbs" id="breadcrumbs"></div>
+          <div class="section-head">
+            <div>
+              <h2 id="section-title">Vista general</h2>
+              <div class="hint" id="section-hint"></div>
+            </div>
+            <div class="section-label" id="metric-label"></div>
+          </div>
+          <div class="bar-list" id="bar-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <h2>Detalle tabular</h2>
+              <div class="hint">Plantilla, adopción, gasto e intensidad por nodo visible</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nivel</th>
+                  <th>Ruta</th>
+                  <th>Empleados</th>
+                  <th>Activos IA</th>
+                  <th>Implantación</th>
+                  <th>Gasto</th>
+                  <th>USD/empleado</th>
+                  <th>USD/activo</th>
+                  <th>% gasto total</th>
+                  <th>Índice IA</th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div class="footnote" id="footnote"></div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script src="./litellm_implantacion_data.js"></script>
+  <script>
+    const LEVELS = ["area", "subarea1", "subarea2", "subarea3"];
+    const LEVEL_LABELS = {
+      area: "Area",
+      subarea1: "Subárea 1",
+      subarea2: "Subárea 2",
+      subarea3: "Subárea 3"
+    };
+    const METRIC_LABELS = {
+      gasto_usd: "Barra escalada por gasto total",
+      pct_implantacion_ia: "Barra escalada por implantación IA",
+      usd_por_empleado: "Barra escalada por USD por empleado",
+      indice_intensidad_ia: "Barra escalada por índice de intensidad IA"
+    };
+
+    const rows = metricsRows.map((row) => ({
+      nivel: row.nivel,
+      area: row.area,
+      subarea1: row.subarea1,
+      subarea2: row.subarea2,
+      subarea3: row.subarea3,
+      empleados_totales: Number(row.empleados_totales || 0),
+      empleados_activos_ia: Number(row.empleados_activos_ia || 0),
+      pct_implantacion_ia: Number(row.pct_implantacion_ia || 0),
+      gasto_usd: Number(row.gasto_usd || 0),
+      usd_por_empleado: Number(row.usd_por_empleado || 0),
+      usd_por_usuario_activo: row.usd_por_usuario_activo == null ? null : Number(row.usd_por_usuario_activo),
+      pct_gasto_total: Number(row.pct_gasto_total || 0),
+      pct_plantilla_total: Number(row.pct_plantilla_total || 0),
+      indice_intensidad_ia: Number(row.indice_intensidad_ia || 0)
+    }));
+
+    const state = {
+      path: [],
+      metric: "gasto_usd",
+      search: ""
+    };
+
+    const totalAreaRows = rows.filter((row) => row.nivel === "area");
+    const totalSpend = totalAreaRows.reduce((sum, row) => sum + row.gasto_usd, 0);
+    const totalEmployees = totalAreaRows.reduce((sum, row) => sum + row.empleados_totales, 0);
+    const totalActive = totalAreaRows.reduce((sum, row) => sum + row.empleados_activos_ia, 0);
+
+    function fmtUsd(value) {
+      return new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value || 0);
+    }
+
+    function fmtPct(value) {
+      return `${Number(value || 0).toFixed(2)}%`;
+    }
+
+    function fmtNum(value) {
+      return new Intl.NumberFormat("es-ES").format(Number(value || 0));
+    }
+
+    function normalize(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function currentLevel() {
+      return LEVELS[Math.min(state.path.length, LEVELS.length - 1)];
+    }
+
+    function filterRowsAtLevel(level) {
+      return rows.filter((row) => {
+        if (row.nivel !== level) {
+          return false;
+        }
+
+        const prefixMatches = state.path.every((segment, index) => row[LEVELS[index]] === segment);
+        if (!prefixMatches) {
+          return false;
+        }
+
+        if (!state.search) {
+          return true;
+        }
+
+        return normalize([
+          row.area,
+          row.subarea1,
+          row.subarea2,
+          row.subarea3
+        ].join(" ")).includes(state.search);
+      });
+    }
+
+    function getVisibleRows() {
+      const level = currentLevel();
+      return filterRowsAtLevel(level).sort((a, b) => {
+        const delta = b[state.metric] - a[state.metric];
+        if (delta !== 0) {
+          return delta;
+        }
+        return b.gasto_usd - a.gasto_usd;
+      });
+    }
+
+    function getCurrentNode() {
+      if (!state.path.length) {
+        return null;
+      }
+      const level = LEVELS[state.path.length - 1];
+      return rows.find((row) =>
+        row.nivel === level &&
+        state.path.every((segment, index) => row[LEVELS[index]] === segment)
+      ) || null;
+    }
+
+    function getScopeSummary() {
+      const node = getCurrentNode();
+      if (node) {
+        return node;
+      }
+      return {
+        empleados_totales: totalEmployees,
+        empleados_activos_ia: totalActive,
+        pct_implantacion_ia: totalEmployees ? (totalActive / totalEmployees) * 100 : 0,
+        gasto_usd: totalSpend,
+        pct_gasto_total: 100,
+        indice_intensidad_ia: 1,
+        usd_por_empleado: totalEmployees ? totalSpend / totalEmployees : 0,
+        usd_por_usuario_activo: totalActive ? totalSpend / totalActive : null
+      };
+    }
+
+    function getRoute(row) {
+      return LEVELS
+        .map((level) => row[level])
+        .filter(Boolean)
+        .join(" > ");
+    }
+
+    function renderStats() {
+      const scope = getScopeSummary();
+      const visibleRows = getVisibleRows();
+      const cards = [
+        { label: "Gasto visible", value: fmtUsd(scope.gasto_usd) },
+        { label: "Plantilla visible", value: fmtNum(scope.empleados_totales) },
+        { label: "Activos IA", value: fmtNum(scope.empleados_activos_ia) },
+        { label: "Implantación IA", value: fmtPct(scope.pct_implantacion_ia) }
+      ];
+
+      document.getElementById("stats").innerHTML = cards.map((card) => `
+        <article class="stat-card">
+          <div class="label">${card.label}</div>
+          <div class="value">${card.value}</div>
+        </article>
+      `).join("");
+
+      document.getElementById("metric-label").textContent = METRIC_LABELS[state.metric];
+      document.getElementById("section-hint").textContent = state.path.length
+        ? state.path.join(" > ")
+        : `${visibleRows.length} áreas visibles`;
+    }
+
+    function renderBreadcrumbs() {
+      const container = document.getElementById("breadcrumbs");
+      const parts = ['<button class="crumb" data-index="-1">Global</button>'];
+      state.path.forEach((part, index) => {
+        parts.push(`<button class="crumb" data-index="${index}">${part}</button>`);
+      });
+      container.innerHTML = parts.join("");
+
+      [...container.querySelectorAll(".crumb")].forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = Number(button.dataset.index);
+          state.path = index < 0 ? [] : state.path.slice(0, index + 1);
+          render();
+        });
+      });
+    }
+
+    function renderBars() {
+      const visibleRows = getVisibleRows();
+      const container = document.getElementById("bar-list");
+      const title = state.path.length === 0
+        ? "Vista general por área"
+        : `Desglose de ${LEVEL_LABELS[currentLevel()]}`;
+      document.getElementById("section-title").textContent = title;
+
+      if (!visibleRows.length) {
+        container.innerHTML = '<div class="empty">No hay nodos para este filtro.</div>';
+        return;
+      }
+
+      const maxMetric = Math.max(...visibleRows.map((row) => row[state.metric] || 0), 1);
+      container.innerHTML = visibleRows.map((row) => {
+        const path = LEVELS
+          .slice(0, LEVELS.indexOf(row.nivel) + 1)
+          .map((level) => row[level]);
+        const width = Math.max((row[state.metric] / maxMetric) * 100, row[state.metric] > 0 ? 1.5 : 0);
+        return `
+          <article class="item" data-path='${JSON.stringify(path)}'>
+            <div class="item-head">
+              <div class="item-title">${row[row.nivel]}</div>
+              <div class="item-main">
+                <div class="value">${state.metric === "gasto_usd" ? fmtUsd(row.gasto_usd) : state.metric === "pct_implantacion_ia" ? fmtPct(row.pct_implantacion_ia) : state.metric === "usd_por_empleado" ? fmtUsd(row.usd_por_empleado) : row.indice_intensidad_ia.toFixed(2)}</div>
+                <div class="caption">${fmtPct(row.pct_gasto_total)} del gasto total</div>
+              </div>
+            </div>
+            <div class="track">
+              <div class="fill" style="width: ${width}%"></div>
+            </div>
+            <div class="metrics-grid">
+              <div class="metric-chip"><span class="k">Implantación</span><span class="v">${fmtPct(row.pct_implantacion_ia)}</span></div>
+              <div class="metric-chip"><span class="k">Activos / plantilla</span><span class="v">${fmtNum(row.empleados_activos_ia)} / ${fmtNum(row.empleados_totales)}</span></div>
+              <div class="metric-chip"><span class="k">USD por empleado</span><span class="v">${fmtUsd(row.usd_por_empleado)}</span></div>
+              <div class="metric-chip"><span class="k">Índice IA</span><span class="v">${row.indice_intensidad_ia.toFixed(2)}</span></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      [...container.querySelectorAll(".item")].forEach((node) => {
+        node.addEventListener("click", () => {
+          const nextPath = JSON.parse(node.dataset.path);
+          if (nextPath.length <= LEVELS.length) {
+            state.path = nextPath;
+            render();
+          }
+        });
+      });
+    }
+
+    function renderTable() {
+      const body = document.getElementById("table-body");
+      const visibleRows = getVisibleRows();
+
+      if (!visibleRows.length) {
+        body.innerHTML = "";
+        return;
+      }
+
+      body.innerHTML = visibleRows.map((row) => {
+        const path = LEVELS
+          .slice(0, LEVELS.indexOf(row.nivel) + 1)
+          .map((level) => row[level]);
+        return `
+          <tr data-path='${JSON.stringify(path)}'>
+            <td>${LEVEL_LABELS[row.nivel]}</td>
+            <td>${getRoute(row)}</td>
+            <td class="num">${fmtNum(row.empleados_totales)}</td>
+            <td class="num">${fmtNum(row.empleados_activos_ia)}</td>
+            <td class="num">${fmtPct(row.pct_implantacion_ia)}</td>
+            <td class="num">${fmtUsd(row.gasto_usd)}</td>
+            <td class="num">${fmtUsd(row.usd_por_empleado)}</td>
+            <td class="num">${row.usd_por_usuario_activo == null ? "n/a" : fmtUsd(row.usd_por_usuario_activo)}</td>
+            <td class="num">${fmtPct(row.pct_gasto_total)}</td>
+            <td class="num">${row.indice_intensidad_ia.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      [...body.querySelectorAll("tr[data-path]")].forEach((row) => {
+        row.addEventListener("click", () => {
+          state.path = JSON.parse(row.dataset.path);
+          render();
+        });
+      });
+    }
+
+    function renderRootChips() {
+      const roots = rows
+        .filter((row) => row.nivel === "area")
+        .sort((a, b) => b.gasto_usd - a.gasto_usd);
+
+      document.getElementById("root-chips").innerHTML = roots.map((row) => `
+        <button class="${state.path[0] === row.area ? "active" : ""}" data-root="${row.area}">
+          ${row.area}
+        </button>
+      `).join("");
+
+      [...document.querySelectorAll("#root-chips button")].forEach((button) => {
+        button.addEventListener("click", () => {
+          state.path = [button.dataset.root];
+          render();
+        });
+      });
+    }
+
+    function renderFootnote() {
+      const scope = getScopeSummary();
+      const label = state.path.length ? state.path.join(" > ") : "global";
+      document.getElementById("footnote").textContent =
+        `Ámbito visible: ${label}. Gasto: ${fmtUsd(scope.gasto_usd)}. Implantación: ${fmtPct(scope.pct_implantacion_ia)}. ` +
+        `Activos: ${fmtNum(scope.empleados_activos_ia)} sobre ${fmtNum(scope.empleados_totales)} empleados. ` +
+        `El índice IA compara share de gasto frente a share de plantilla.`;
+    }
+
+    function syncControls() {
+      document.getElementById("search").value = state.search;
+      document.getElementById("metric-select").value = state.metric;
+    }
+
+    function render() {
+      renderStats();
+      renderBreadcrumbs();
+      renderBars();
+      renderTable();
+      renderRootChips();
+      renderFootnote();
+      syncControls();
+    }
+
+    document.getElementById("search").addEventListener("input", (event) => {
+      state.search = normalize(event.target.value.trim());
+      render();
+    });
+
+    document.getElementById("metric-select").addEventListener("change", (event) => {
+      state.metric = event.target.value;
+      render();
+    });
+
+    document.getElementById("back-btn").addEventListener("click", () => {
+      state.path = state.path.slice(0, -1);
+      render();
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      state.path = [];
+      state.search = "";
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
