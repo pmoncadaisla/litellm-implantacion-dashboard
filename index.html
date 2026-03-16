@@ -115,7 +115,7 @@
     .stats {
       display: grid;
       gap: 16px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       margin-top: 22px;
     }
 
@@ -560,6 +560,8 @@
       indice_intensidad_ia: "Barra escalada por índice de intensidad IA"
     };
 
+    const EXTERNAL_SPEND_USD = 31601.93;
+
     const rows = metricsRows.map((row) => ({
       nivel: row.nivel,
       area: row.area,
@@ -587,6 +589,7 @@
     const totalSpend = totalAreaRows.reduce((sum, row) => sum + row.gasto_usd, 0);
     const totalEmployees = totalAreaRows.reduce((sum, row) => sum + row.empleados_totales, 0);
     const totalActive = totalAreaRows.reduce((sum, row) => sum + row.empleados_activos_ia, 0);
+    const totalLiteLlMSpend = totalSpend + EXTERNAL_SPEND_USD;
 
     function fmtUsd(value) {
       return new Intl.NumberFormat("es-ES", {
@@ -693,7 +696,11 @@
         { label: "Gasto visible", value: fmtUsd(scope.gasto_usd) },
         { label: "Plantilla visible", value: fmtNum(scope.empleados_totales) },
         { label: "Activos IA", value: fmtNum(scope.empleados_activos_ia) },
-        { label: "Implantación IA", value: fmtPct(scope.pct_implantacion_ia) }
+        { label: "Implantación IA", value: fmtPct(scope.pct_implantacion_ia) },
+        {
+          label: "Gasto externos",
+          value: `${fmtUsd(EXTERNAL_SPEND_USD)} · ${fmtPct(totalLiteLlMSpend ? (EXTERNAL_SPEND_USD / totalLiteLlMSpend) * 100 : 0)}`
+        }
       ];
 
       document.getElementById("stats").innerHTML = cards.map((card) => `
@@ -840,6 +847,7 @@
       document.getElementById("footnote").textContent =
         `Ámbito visible: ${label}. Gasto: ${fmtUsd(scope.gasto_usd)}. Implantación: ${fmtPct(scope.pct_implantacion_ia)}. ` +
         `Activos: ${fmtNum(scope.empleados_activos_ia)} sobre ${fmtNum(scope.empleados_totales)} empleados. ` +
+        `Gasto en externos fuera del denominador de implantación: ${fmtUsd(EXTERNAL_SPEND_USD)}. ` +
         `El índice IA compara share de gasto frente a share de plantilla.`;
     }
 
