@@ -561,8 +561,9 @@
     };
 
     const EXTERNAL_SPEND_USD = 31601.93;
+    const EXTERNAL_ACTIVE_USERS = 321;
 
-    const rows = metricsRows.map((row) => ({
+    const internalRows = metricsRows.map((row) => ({
       nivel: row.nivel,
       area: row.area,
       subarea1: row.subarea1,
@@ -579,6 +580,27 @@
       indice_intensidad_ia: Number(row.indice_intensidad_ia || 0)
     }));
 
+    const externalRows = [
+      { nivel: "area", area: "Externos", subarea1: null, subarea2: null, subarea3: null },
+      { nivel: "subarea1", area: "Externos", subarea1: "Externos", subarea2: null, subarea3: null },
+      { nivel: "subarea2", area: "Externos", subarea1: "Externos", subarea2: "Externos", subarea3: null },
+      { nivel: "subarea3", area: "Externos", subarea1: "Externos", subarea2: "Externos", subarea3: "Externos" }
+    ].map((row) => ({
+      ...row,
+      empleados_totales: EXTERNAL_ACTIVE_USERS,
+      empleados_activos_ia: EXTERNAL_ACTIVE_USERS,
+      pct_implantacion_ia: 100,
+      gasto_usd: EXTERNAL_SPEND_USD,
+      usd_por_empleado: EXTERNAL_SPEND_USD / EXTERNAL_ACTIVE_USERS,
+      usd_por_usuario_activo: EXTERNAL_SPEND_USD / EXTERNAL_ACTIVE_USERS,
+      pct_gasto_total: 0,
+      pct_plantilla_total: 0,
+      indice_intensidad_ia: 0,
+      isExternal: true
+    }));
+
+    const rows = [...internalRows, ...externalRows];
+
     const state = {
       path: [],
       metric: "gasto_usd",
@@ -589,7 +611,6 @@
     const totalSpend = totalAreaRows.reduce((sum, row) => sum + row.gasto_usd, 0);
     const totalEmployees = totalAreaRows.reduce((sum, row) => sum + row.empleados_totales, 0);
     const totalActive = totalAreaRows.reduce((sum, row) => sum + row.empleados_activos_ia, 0);
-    const totalLiteLlMSpend = totalSpend + EXTERNAL_SPEND_USD;
 
     function fmtUsd(value) {
       return new Intl.NumberFormat("es-ES", {
@@ -678,7 +699,8 @@
         pct_gasto_total: 100,
         indice_intensidad_ia: 1,
         usd_por_empleado: totalEmployees ? totalSpend / totalEmployees : 0,
-        usd_por_usuario_activo: totalActive ? totalSpend / totalActive : null
+        usd_por_usuario_activo: totalActive ? totalSpend / totalActive : null,
+        isExternal: false
       };
     }
 
@@ -698,8 +720,8 @@
         { label: "Activos IA", value: fmtNum(scope.empleados_activos_ia) },
         { label: "Implantación IA", value: fmtPct(scope.pct_implantacion_ia) },
         {
-          label: "Gasto externos",
-          value: `${fmtUsd(EXTERNAL_SPEND_USD)} · ${fmtPct(totalLiteLlMSpend ? (EXTERNAL_SPEND_USD / totalLiteLlMSpend) * 100 : 0)}`
+          label: "Área externos",
+          value: `${fmtUsd(EXTERNAL_SPEND_USD)} · ${fmtNum(EXTERNAL_ACTIVE_USERS)} usuarios`
         }
       ];
 
@@ -751,24 +773,25 @@
         const path = LEVELS
           .slice(0, LEVELS.indexOf(row.nivel) + 1)
           .map((level) => row[level]);
+        const pctGastoTotal = totalSpend ? (row.gasto_usd / totalSpend) * 100 : 0;
         const width = Math.max((row[state.metric] / maxMetric) * 100, row[state.metric] > 0 ? 1.5 : 0);
         return `
           <article class="item" data-path='${JSON.stringify(path)}'>
             <div class="item-head">
               <div class="item-title">${row[row.nivel]}</div>
               <div class="item-main">
-                <div class="value">${state.metric === "gasto_usd" ? fmtUsd(row.gasto_usd) : state.metric === "pct_implantacion_ia" ? fmtPct(row.pct_implantacion_ia) : state.metric === "usd_por_empleado" ? fmtUsd(row.usd_por_empleado) : row.indice_intensidad_ia.toFixed(2)}</div>
-                <div class="caption">${fmtPct(row.pct_gasto_total)} del gasto total</div>
+                <div class="value">${state.metric === "gasto_usd" ? fmtUsd(row.gasto_usd) : state.metric === "pct_implantacion_ia" ? fmtPct(row.pct_implantacion_ia) : state.metric === "usd_por_empleado" ? fmtUsd(row.usd_por_empleado) : row.isExternal ? "n/a" : row.indice_intensidad_ia.toFixed(2)}</div>
+                <div class="caption">${fmtPct(pctGastoTotal)} del gasto total</div>
               </div>
             </div>
             <div class="track">
               <div class="fill" style="width: ${width}%"></div>
             </div>
             <div class="metrics-grid">
-              <div class="metric-chip"><span class="k">Implantación</span><span class="v">${fmtPct(row.pct_implantacion_ia)}</span></div>
-              <div class="metric-chip"><span class="k">Activos / plantilla</span><span class="v">${fmtNum(row.empleados_activos_ia)} / ${fmtNum(row.empleados_totales)}</span></div>
+              <div class="metric-chip"><span class="k">${row.isExternal ? "Cobertura" : "Implantación"}</span><span class="v">${fmtPct(row.pct_implantacion_ia)}</span></div>
+              <div class="metric-chip"><span class="k">${row.isExternal ? "Usuarios externos" : "Activos / plantilla"}</span><span class="v">${row.isExternal ? fmtNum(row.empleados_activos_ia) : `${fmtNum(row.empleados_activos_ia)} / ${fmtNum(row.empleados_totales)}`}</span></div>
               <div class="metric-chip"><span class="k">USD por empleado</span><span class="v">${fmtUsd(row.usd_por_empleado)}</span></div>
-              <div class="metric-chip"><span class="k">Índice IA</span><span class="v">${row.indice_intensidad_ia.toFixed(2)}</span></div>
+              <div class="metric-chip"><span class="k">${row.isExternal ? "Intensidad IA" : "Índice IA"}</span><span class="v">${row.isExternal ? "n/a" : row.indice_intensidad_ia.toFixed(2)}</span></div>
             </div>
           </article>
         `;
@@ -798,6 +821,7 @@
         const path = LEVELS
           .slice(0, LEVELS.indexOf(row.nivel) + 1)
           .map((level) => row[level]);
+        const pctGastoTotal = totalSpend ? (row.gasto_usd / totalSpend) * 100 : 0;
         return `
           <tr data-path='${JSON.stringify(path)}'>
             <td>${LEVEL_LABELS[row.nivel]}</td>
@@ -808,8 +832,8 @@
             <td class="num">${fmtUsd(row.gasto_usd)}</td>
             <td class="num">${fmtUsd(row.usd_por_empleado)}</td>
             <td class="num">${row.usd_por_usuario_activo == null ? "n/a" : fmtUsd(row.usd_por_usuario_activo)}</td>
-            <td class="num">${fmtPct(row.pct_gasto_total)}</td>
-            <td class="num">${row.indice_intensidad_ia.toFixed(2)}</td>
+            <td class="num">${fmtPct(pctGastoTotal)}</td>
+            <td class="num">${row.isExternal ? "n/a" : row.indice_intensidad_ia.toFixed(2)}</td>
           </tr>
         `;
       }).join("");
@@ -847,7 +871,7 @@
       document.getElementById("footnote").textContent =
         `Ámbito visible: ${label}. Gasto: ${fmtUsd(scope.gasto_usd)}. Implantación: ${fmtPct(scope.pct_implantacion_ia)}. ` +
         `Activos: ${fmtNum(scope.empleados_activos_ia)} sobre ${fmtNum(scope.empleados_totales)} empleados. ` +
-        `Gasto en externos fuera del denominador de implantación: ${fmtUsd(EXTERNAL_SPEND_USD)}. ` +
+        `Externos se muestran como un área adicional con ${fmtNum(EXTERNAL_ACTIVE_USERS)} usuarios activos y ${fmtUsd(EXTERNAL_SPEND_USD)} de gasto. ` +
         `El índice IA compara share de gasto frente a share de plantilla.`;
     }
 
