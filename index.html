@@ -133,7 +133,19 @@
     .stat-card .value {
       margin-top: 10px;
       font-weight: 800;
-      font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+      font-size: clamp(1.2rem, 2.2vw, 1.95rem);
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .stat-card .subvalue {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.25;
     }
 
     .workspace {
@@ -721,7 +733,8 @@
         { label: "Implantación IA", value: fmtPct(scope.pct_implantacion_ia) },
         {
           label: "Área externos",
-          value: `${fmtUsd(EXTERNAL_SPEND_USD)} · ${fmtNum(EXTERNAL_ACTIVE_USERS)} usuarios`
+          value: fmtUsd(EXTERNAL_SPEND_USD),
+          subvalue: `${fmtNum(EXTERNAL_ACTIVE_USERS)} usuarios`
         }
       ];
 
@@ -729,6 +742,7 @@
         <article class="stat-card">
           <div class="label">${card.label}</div>
           <div class="value">${card.value}</div>
+          ${card.subvalue ? `<div class="subvalue">${card.subvalue}</div>` : ""}
         </article>
       `).join("");
 
